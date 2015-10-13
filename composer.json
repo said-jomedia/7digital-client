@@ -1,0 +1,19 @@
+{
+    "name": "carlb-jomedia/7digital",
+    "description": "Library to use the 7digital API",
+    "authors": [
+        {
+            "name": "Carl Boisvert",
+            "email": "carl.boisvert@jomediainc.com"
+        }
+    ],
+    "require": {
+        "php-curl-class/php-curl-class": "dev-master"
+
+    },
+    "autoload": {
+        "psr-4": {
+            "SevenDigital\\": ""
+        }
+    }
+}
