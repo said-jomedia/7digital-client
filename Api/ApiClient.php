@@ -81,11 +81,11 @@ class ApiClient{
         }
     }
 
-    public function getFeed($type, $params, $full = false){
+    public function getFeed($type, $filename, $params, $full = false){
         $requestUrl = $this->getFeedUrl($type, $params, $full);
 
         if(isset($this->config["feedDir"])){
-            $file = fopen($this->config["feedDir"].'/'.$type.'.gz', 'w+');
+            $file = fopen($this->config["feedDir"].'/'.$filename.'.gz', 'w+');
         } else{
             $file = fopen('/tmp/'.$type.'.gz', 'w+');
         }
