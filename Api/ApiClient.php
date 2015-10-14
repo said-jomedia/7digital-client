@@ -81,6 +81,32 @@ class ApiClient{
         }
     }
 
+    public function getFeed($type, $params, $full = false){
+        $this->config["baseUrl"] = "http://feeds.api.7digital.com/1.2/feed/";
+        $path = "";
+        switch($type){
+            case "artists":
+                ($full === true)? $path = "artist/full" : $path = "artist/updates";
+                break;
+            case "releases":
+                ($full === true)? $path = "release/full" : $path = "release/updates";
+                break;
+            case "tracks":
+                ($full === true)? $path = "track/full" : $path = "track/updates";
+                break;
+        }
+        $oauthFactory = new OauthFactory();
+        $oauth = $oauthFactory->create(1.0,$this->config);
+        $requestUrl = $oauth->signRequest("GET",$path,$params);
+        $file = fopen('/tmp/'.$type.'.gz', 'w+');
+        $this->curl->setOpt(CURLOPT_TIMEOUT,50);
+        $this->curl->setOpt(CURLOPT_FILE,$file);
+        $this->curl->setOpt(CURLOPT_FOLLOWLOCATION,true);
+        $response = $this->curl->get($requestUrl);
+        fclose($file);
+        return $response;
+    }
+
     public function setBaseUrl($url){
         $this->config["baseUrl"] = $url;
     }
