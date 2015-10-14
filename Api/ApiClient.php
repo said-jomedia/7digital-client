@@ -82,6 +82,34 @@ class ApiClient{
     }
 
     public function getFeed($type, $params, $full = false){
+        $requestUrl = $this->getFeedUrl($type, $params, $full);
+
+        if(isset($this->config["feedDir"])){
+            $file = fopen($this->config["feedDir"].'/'.$type.'.gz', 'w+');
+        } else{
+            $file = fopen('/tmp/'.$type.'.gz', 'w+');
+        }
+
+        $this->curl->setOpt(CURLOPT_TIMEOUT,50);
+        $this->curl->setOpt(CURLOPT_FILE,$file);
+        $this->curl->setOpt(CURLOPT_FOLLOWLOCATION,true);
+        $response = $this->curl->get($requestUrl);
+        fclose($file);
+        return $response;
+    }
+
+    public function getFeedSize($type, $params, $full = false){
+        $requestUrl = $this->getFeedUrl($type, $params, $full = false);
+        $this->curl->setOpt(CURLOPT_NOBODY, true);
+        $this->curl->setOpt(CURLOPT_HEADER, true);
+        $this->curl->setOpt(CURLOPT_RETURNTRANSFER, true );
+        $this->curl->setOpt(CURLOPT_FOLLOWLOCATION, true );
+        $this->curl->setOpt(CURLOPT_NOBODY, true );
+        $response = $this->curl->head($requestUrl);
+        return $response;
+    }
+
+    private function getFeedUrl($type, $params, $full){
         $this->config["baseUrl"] = "http://feeds.api.7digital.com/1.2/feed/";
         $path = "";
         switch($type){
@@ -98,18 +126,7 @@ class ApiClient{
         $oauthFactory = new OauthFactory();
         $oauth = $oauthFactory->create(1.0,$this->config);
         $requestUrl = $oauth->signRequest("GET",$path,$params);
-        if(isset($this->config["feedDir"])){
-            $file = fopen($this->config["feedDir"].'/'.$type.'.gz', 'w+');
-        } else{
-            $file = fopen('/tmp/'.$type.'.gz', 'w+');
-        }
-
-        $this->curl->setOpt(CURLOPT_TIMEOUT,50);
-        $this->curl->setOpt(CURLOPT_FILE,$file);
-        $this->curl->setOpt(CURLOPT_FOLLOWLOCATION,true);
-        $response = $this->curl->get($requestUrl);
-        fclose($file);
-        return $response;
+        return $requestUrl;
     }
 
     public function setBaseUrl($url){
