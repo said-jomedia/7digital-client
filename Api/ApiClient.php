@@ -90,7 +90,7 @@ class ApiClient{
             $file = fopen('/tmp/'.$type.'.gz', 'w+');
         }
 
-        $this->curl->setOpt(CURLOPT_TIMEOUT,50);
+        $this->curl->setOpt(CURLOPT_TIMEOUT,600000);
         $this->curl->setOpt(CURLOPT_FILE,$file);
         $this->curl->setOpt(CURLOPT_FOLLOWLOCATION,true);
         $response = $this->curl->get($requestUrl);
