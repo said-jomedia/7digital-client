@@ -65,7 +65,6 @@ class ApiClient{
 
         $params = $this->oauth->signRequest("POST","user/unlimitedStreaming",array_merge(array(
             "planCode" => "premium-unlimited-streaming",
-            "status" => "active",
             "currency" => "USD",
             "recurringFee" => 0,
             "activatedAt" => $stringDate,
