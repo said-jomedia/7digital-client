@@ -80,6 +80,15 @@ class ApiClient{
         }
     }
 
+    public function getSubscription(array $params){
+        $response = $this->curl->get($this->config["baseUrl"]."user/unlimitedStreaming",$params);
+        if($response->streaming){
+            return $response;
+        } else{
+            throw new MusicProviderException("Can't subscribe the user",MusicProviderException::INT_CREATE_ACCOUNT_ERROR);
+        }
+    }
+
     public function getFeed($type, $filename, $params, $full = false){
         $requestUrl = $this->getFeedUrl($type, $params, $full);
 
