@@ -81,6 +81,7 @@ class ApiClient{
     }
 
     public function getSubscription(array $params){
+        $params = $this->oauth->signRequest("GET","user/unlimitedStreaming",$params);
         $response = $this->curl->get($this->config["baseUrl"]."user/unlimitedStreaming",$params);
         if($response->streaming){
             return $response;
