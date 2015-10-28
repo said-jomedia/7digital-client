@@ -69,7 +69,6 @@ class ApiClient{
         }
         $stringExpireDate = $expireDate->format("Y-m-d")."T".$expireDate->format("H:m:s")."Z";
         $params = $this->oauth->signRequest("POST","user/unlimitedStreaming",array_merge(array(
-            "planCode" => "premium-unlimited-streaming",
             "currency" => "USD",
             "recurringFee" => 0,
             "activatedAt" => $stringDate,
