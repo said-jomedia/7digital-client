@@ -2,6 +2,7 @@
 
 namespace SevenDigital\Api;
 
+use JoMedia\Music\MusicProviderException;
 use SevenDigital\Oauth\Interfaces\OauthInterface;
 use SevenDigital\Oauth\OauthFactory;
 use Curl\Curl;
@@ -60,9 +61,13 @@ class ApiClient{
 
         $date = new \DateTime("now",new \DateTimeZone("UTC"));
         $stringDate = $date->format("Y-m-d")."T".$date->format("H:m:s")."Z";
-        $expireDate = $date->add(new \DateInterval("P30D"));
-        $stringExpireDate = $date->format("Y-m-d")."T".$date->format("H:m:s")."Z";
 
+        if(isset($params["status"]) && $params["status"] == "expired"){
+            $expireDate = $date->sub(new \DateInterval("P1D"));
+        } else{
+            $expireDate = $date->add(new \DateInterval("P30D"));
+        }
+        $stringExpireDate = $expireDate->format("Y-m-d")."T".$expireDate->format("H:m:s")."Z";
         $params = $this->oauth->signRequest("POST","user/unlimitedStreaming",array_merge(array(
             "planCode" => "premium-unlimited-streaming",
             "currency" => "USD",
@@ -86,7 +91,7 @@ class ApiClient{
         if($response->streaming){
             return $response;
         } else{
-            throw new MusicProviderException("Can't subscribe the user",MusicProviderException::INT_CREATE_ACCOUNT_ERROR);
+            return false;
         }
     }
 
