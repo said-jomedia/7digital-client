@@ -52,6 +52,15 @@ class ApiClient{
         return $requestUrl;
     }
 
+    public function getPreviewUrl(array $params){
+        $trackId = $params["trackId"];
+        unset($params["trackId"]);
+        $oauthFactory = new OauthFactory();
+        $oauth = $oauthFactory->create(1.0,$this->config);
+        $requestUrl = $oauth->signRequest("GET",$trackId,$params);
+        return $requestUrl;
+    }
+
     /**
      * @param array $params
      * @return mixed
