@@ -1,10 +1,10 @@
 {
-    "name": "carlb-jomedia/7digital",
+    "name": "marcd-jomedia/7digital",
     "description": "Library to use the 7digital API",
     "authors": [
         {
-            "name": "Carl Boisvert",
-            "email": "carl.boisvert@jomediainc.com"
+            "name": "Marc Drolet",
+            "email": "marc.drolet@jomediainc.com"
         }
     ],
     "require": {
