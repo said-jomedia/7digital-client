@@ -1,4 +1,7 @@
 <?php
+/**
+ *
+ */
 
 namespace SevenDigital\Api;
 
@@ -6,9 +9,15 @@ use JoMedia\Music\MusicProviderException;
 use SevenDigital\Oauth\Interfaces\OauthInterface;
 use SevenDigital\Oauth\OauthFactory;
 use Curl\Curl;
+use \DateTime;
+use \DateInterval;
+use \DateTimeZone;
 
-class ApiClient{
-
+/**
+ * ApiClient 
+ */
+class ApiClient
+{
     /**
      * @var array
      */
@@ -19,13 +28,25 @@ class ApiClient{
      */
     private $oauth;
 
+    /**
+     * curl 
+     * @var Curl object
+     */
     private $curl;
 
-    public function __construct(array $config){
+    /**
+     * __construct 
+     * 
+     * @param array $config config 
+     * 
+     * @return void
+     */
+    public function __construct(array $config)
+    {
         // TODO Validate config
         $this->config = $config;
         $oauthFactory = new OauthFactory();
-        $this->oauth = $oauthFactory->create(1.0,$config);
+        $this->oauth = $oauthFactory->create(1.0, $config);
         $this->curl = new Curl();
     }
 
@@ -33,31 +54,48 @@ class ApiClient{
      * @param array $params
      * @return bool
      */
-    public function createUser(array $params){
-        $requestUrl = $this->oauth->signRequest("GET","user/create",$params);
+    public function createUser(array $params)
+    {
+        $requestUrl = $this->oauth->signRequest('GET', 'user/create', $params);
 
         $response = $this->curl->get($requestUrl);
 
-        if($response->error){
+        if ($response->error) {
             return false;
-        } else{
+        } else {
             return $response->user;
         }
     }
 
-    public function getStreamUrl(array $params){
+    /**
+     * getStreamUrl 
+     * 
+     * @param array $params params 
+     * 
+     * @return void
+     */
+    public function getStreamUrl(array $params)
+    {
         $oauthFactory = new OauthFactory();
-        $oauth = $oauthFactory->create(1.0,$this->config);
-        $requestUrl = $oauth->signRequest("GET","stream/subscription",$params);
+        $oauth = $oauthFactory->create(1.0, $this->config);
+        $requestUrl = $oauth->signRequest('GET', 'stream/subscription', $params);
         return $requestUrl;
     }
 
-    public function getPreviewUrl(array $params){
-        $trackId = $params["trackId"];
-        unset($params["trackId"]);
+    /**
+     * getPreviewUrl 
+     * 
+     * @param array $params params 
+     * 
+     * @return void
+     */
+    public function getPreviewUrl(array $params)
+    {
+        $trackId = $params['trackId'];
+        unset($params['trackId']);
         $oauthFactory = new OauthFactory();
-        $oauth = $oauthFactory->create(1.0,$this->config);
-        $requestUrl = $oauth->signRequest("GET",$trackId,$params);
+        $oauth = $oauthFactory->create(1.0, $this->config);
+        $requestUrl = $oauth->signRequest('GET', $trackId, $params);
         return $requestUrl;
     }
 
@@ -66,61 +104,97 @@ class ApiClient{
      * @return mixed
      * @throws MusicProviderException
      */
-    public function subscribeUser(array $params){
+    public function subscribeUser(array $params)
+    {
+        $date = new DateTime('now', new DateTimeZone('UTC'));
+        $stringDate = $date->format('Y-m-d').'T'.$date->format('H:m:s').'Z';
 
-        $date = new \DateTime("now",new \DateTimeZone("UTC"));
-        $stringDate = $date->format("Y-m-d")."T".$date->format("H:m:s")."Z";
-
-        if(isset($params["status"]) && $params["status"] == "expired"){
-            $expireDate = $date->sub(new \DateInterval("P1D"));
-        } else{
-            $expireDate = $date->add(new \DateInterval("P30D"));
+        if (isset($params['status']) && 'expired' === $params['status']) {
+            $expireDate = $date->sub(new DateInterval('P1D'));
+        } else {
+            $expireDate = $date->add(new DateInterval('P1M'));
         }
-        $stringExpireDate = $expireDate->format("Y-m-d")."T".$expireDate->format("H:m:s")."Z";
-        $params = $this->oauth->signRequest("POST","user/unlimitedStreaming",array_merge(array(
-            "currency" => "USD",
-            "recurringFee" => 0,
-            "activatedAt" => $stringDate,
-            "currentPeriodStartDate" => $stringDate,
-            "expiryDate" => $stringExpireDate
-        ),$params));
 
-        $response = $this->curl->post($this->config["baseUrl"]."user/unlimitedStreaming",$params);
-        if($response->streaming){
+        $stringExpireDate = $expireDate->format('Y-m-d').'T'.$expireDate->format('H:m:s').'Z';
+        $params = $this->oauth->signRequest('POST', 'user/unlimitedStreaming', 
+            array_merge(
+                array(
+                    'currency' => 'USD',
+                    'recurringFee' => 0,
+                    'activatedAt' => $stringDate,
+                    'currentPeriodStartDate' => $stringDate,
+                    'expiryDate' => $stringExpireDate
+                ),
+                $params
+            )
+        );
+
+        $response = $this->curl->post($this->config['baseUrl'].'user/unlimitedStreaming', $params);
+        if ($response->streaming) {
             return $response;
-        } else{
-            throw new MusicProviderException("Can't subscribe the user",MusicProviderException::INT_CREATE_ACCOUNT_ERROR);
+        } else {
+            throw new MusicProviderException('Can\'t subscribe the user', MusicProviderException::INT_CREATE_ACCOUNT_ERROR);
         }
     }
 
-    public function getSubscription(array $params){
-        $url = $this->oauth->signRequest("GET","user/unlimitedStreaming",$params);
+    /**
+     * getSubscription 
+     * 
+     * @param array $params params 
+     * 
+     * @return void
+     */
+    public function getSubscription(array $params)
+    {
+        $url = $this->oauth->signRequest('GET', 'user/unlimitedStreaming', $params);
         $response = $this->curl->get($url);
-        if(!is_string($response) && $response->streaming){
+        if (!is_string($response) && $response->streaming) {
             return $response;
-        } else{
+        } else {
             return false;
         }
     }
 
-    public function getFeed($type, $filename, $params, $full = false){
+    /**
+     * getFeed 
+     * 
+     * @param mixed $type type 
+     * @param mixed $filename filename 
+     * @param mixed $params params 
+     * @param mixed $full full 
+     * 
+     * @return void
+     */
+    public function getFeed($type, $filename, $params, $full = false)
+    {
         $requestUrl = $this->getFeedUrl($type, $params, $full);
 
-        if(isset($this->config["feedDir"])){
-            $file = fopen($this->config["feedDir"].'/'.$filename.'.gz', 'w+');
-        } else{
+        if (isset($this->config['feedDir'])) {
+            $file = fopen($this->config['feedDir'].'/'.$filename.'.gz', 'w+');
+        } else {
             $file = fopen('/tmp/'.$type.'.gz', 'w+');
         }
 
-        $this->curl->setOpt(CURLOPT_TIMEOUT,600000);
-        $this->curl->setOpt(CURLOPT_FILE,$file);
-        $this->curl->setOpt(CURLOPT_FOLLOWLOCATION,true);
+        $this->curl->setOpt(CURLOPT_TIMEOUT, 600000);
+        $this->curl->setOpt(CURLOPT_FILE, $file);
+        $this->curl->setOpt(CURLOPT_FOLLOWLOCATION, true);
         $response = $this->curl->get($requestUrl);
         fclose($file);
+
         return $response;
     }
 
-    public function getFeedSize($type, $params, $full = false){
+    /**
+     * getFeedSize 
+     * 
+     * @param mixed $type type 
+     * @param mixed $params params 
+     * @param mixed $full full 
+     * 
+     * @return void
+     */
+    public function getFeedSize($type, $params, $full = false)
+    {
         $requestUrl = $this->getFeedUrl($type, $params, $full = false);
         $this->curl->setOpt(CURLOPT_NOBODY, true);
         $this->curl->setOpt(CURLOPT_HEADER, true);
@@ -128,32 +202,50 @@ class ApiClient{
         $this->curl->setOpt(CURLOPT_FOLLOWLOCATION, true );
         $this->curl->setOpt(CURLOPT_NOBODY, true );
         $response = $this->curl->head($requestUrl);
+
         return $response;
     }
 
-    private function getFeedUrl($type, $params, $full){
-        $this->config["baseUrl"] = "http://feeds.api.7digital.com/1.2/feed/";
-        $path = "";
+    /**
+     * getFeedUrl 
+     * 
+     * @param mixed $type type 
+     * @param mixed $params params 
+     * @param mixed $full full 
+     * 
+     * @return void
+     */
+    private function getFeedUrl($type, $params, $full)
+    {
+        $this->config['baseUrl'] = 'http://feeds.api.7digital.com/1.2/feed/';
+        $path = '';
         switch($type){
-            case "artist":
-                ($full === true)? $path = "artist/full" : $path = "artist/updates";
+            case 'artist':
+                $path = ($full === true) ? 'artist/full' : 'artist/updates';
                 break;
             case "release":
-                ($full === true)? $path = "release/full" : $path = "release/updates";
+                $path = ($full === true) ? 'release/full' : 'release/updates';
                 break;
             case "track":
-                ($full === true)? $path = "track/full" : $path = "track/updates";
+                $path = ($full === true) ? 'track/full' : 'track/updates';
                 break;
         }
+
         $oauthFactory = new OauthFactory();
-        $oauth = $oauthFactory->create(1.0,$this->config);
-        $requestUrl = $oauth->signRequest("GET",$path,$params);
+        $oauth = $oauthFactory->create(1.0, $this->config);
+        $requestUrl = $oauth->signRequest('GET', $path, $params);
         return $requestUrl;
     }
 
-    public function setBaseUrl($url){
-        $this->config["baseUrl"] = $url;
+    /**
+     * setBaseUrl 
+     * 
+     * @param mixed $url url 
+     * 
+     * @return void
+     */
+    public function setBaseUrl($url)
+    {
+        $this->config['baseUrl'] = $url;
     }
-
-
 }
