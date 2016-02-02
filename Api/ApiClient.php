@@ -12,6 +12,7 @@ use Curl\Curl;
 use \DateTime;
 use \DateInterval;
 use \DateTimeZone;
+use \Exception;
 
 /**
  * ApiClient 
@@ -165,23 +166,31 @@ class ApiClient
      * 
      * @return void
      */
-    public function getFeed($type, $filename, $params, $full = false)
+    public function getFeed($feedDir, $type, $filename, $params, $full = false)
     {
         $requestUrl = $this->getFeedUrl($type, $params, $full);
 
-        if (isset($this->config['feedDir'])) {
-            $file = fopen($this->config['feedDir'].'/'.$filename.'.gz', 'w+');
-        } else {
-            $file = fopen('/tmp/'.$type.'.gz', 'w+');
+        if (!isset($feedDir)) {
+            throw new Exception('config entry feedDir is not set.');
+        } elseif (!is_writable($feedDir)) {
+            throw new Exception('The provided feedDir is not writable');
         }
+
+        $file = fopen($feedDir.'/'.$filename.'.gz', 'w+');
 
         $this->curl->setOpt(CURLOPT_TIMEOUT, 600000);
         $this->curl->setOpt(CURLOPT_FILE, $file);
         $this->curl->setOpt(CURLOPT_FOLLOWLOCATION, true);
         $response = $this->curl->get($requestUrl);
+
         fclose($file);
 
-        return $response;
+        if ($this->curl->error) {
+var_dump(__METHOD__, $this->curl->errorMessage);
+            throw new Exception($this->curl->errorMessage, $this->curl->errorCode);
+        }
+
+        return true;
     }
 
     /**
