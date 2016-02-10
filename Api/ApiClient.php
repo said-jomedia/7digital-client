@@ -84,6 +84,21 @@ class ApiClient
     }
 
     /**
+     * getStreamOfflineUrl 
+     * 
+     * @param array $params params 
+     * 
+     * @return void
+     */
+    public function getDownloadUrl(array $params)
+    {
+        $oauthFactory = new OauthFactory();
+        $oauth = $oauthFactory->create(1.0, $this->config);
+        $requestUrl = $oauth->signRequest('GET', 'offline/subscription', $params);
+        return $requestUrl;
+    }
+
+    /**
      * getPreviewUrl 
      * 
      * @param array $params params 
@@ -98,6 +113,36 @@ class ApiClient
         $oauth = $oauthFactory->create(1.0, $this->config);
         $requestUrl = $oauth->signRequest('GET', $trackId, $params);
         return $requestUrl;
+    }
+
+    /**
+     * Authorize / unauthorize the device for the offline streaming. 
+     * 
+     * @param int $userId The id of our member.
+     * @param string $clientId The unique identifier of the member/device.
+     * @param string $countryCode The country code to authorized
+     * @param bool $authorized Enable the device (true) or disable the device (false)
+     * 
+     * @throws Exception
+     * @return boolean ture on success.
+     */
+    public function subscribeOfflineDevice($userId, $clientId, $countryCode, $authorized)
+    {
+        $params = $this->oauth->signRequest('POST', 'user/unlimitedStreaming/offline', 
+            array(
+                'userId' => $userId,
+                'clientId' => $clientId,
+                'offlineEnabled' => (true === $authorized ? 'true' : 'false'),
+                'country' => $countryCode
+            )
+        );
+
+        $response = $this->curl->post($this->config['baseUrl'].'user/unlimitedStreaming/offline', $params);
+        if (true == $response->offlineStatus->offlineEnabled) {
+            return true;
+        } else {
+            throw new Exception('Can\'t subscribe the user for offline', MusicProviderException::INT_CREATE_ACCOUNT_ERROR);
+        }
     }
 
     /**

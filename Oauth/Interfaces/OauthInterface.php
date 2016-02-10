@@ -2,9 +2,8 @@
 
 namespace SevenDigital\Oauth\Interfaces;
 
-interface OauthInterface{
-
-
+interface OauthInterface
+{
     public function __construct(array $config);
 
     /**
@@ -14,5 +13,4 @@ interface OauthInterface{
      * @return mixed
      */
     public function signRequest($method, $url, array $params);
-
 }
