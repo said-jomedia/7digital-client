@@ -30,12 +30,6 @@ class ApiClient
     private $oauth;
 
     /**
-     * curl 
-     * @var Curl object
-     */
-    private $curl;
-
-    /**
      * __construct 
      * 
      * @param array $config config 
@@ -48,7 +42,6 @@ class ApiClient
         $this->config = $config;
         $oauthFactory = new OauthFactory();
         $this->oauth = $oauthFactory->create(1.0, $config);
-        $this->curl = new Curl();
     }
 
     /**
@@ -59,7 +52,8 @@ class ApiClient
     {
         $requestUrl = $this->oauth->signRequest('GET', 'user/create', $params);
 
-        $response = $this->curl->get($requestUrl);
+        $curl = new Curl();
+        $response = $curl->get($requestUrl);
 
         if ($response->error) {
             return false;
@@ -137,7 +131,9 @@ class ApiClient
             )
         );
 
-        $response = $this->curl->post($this->config['baseUrl'].'user/unlimitedStreaming/offline', $params);
+        $curl = new Curl();
+        $response = $curl->post($this->config['baseUrl'].'user/unlimitedStreaming/offline', $params);
+
         if (true == $response->offlineStatus->offlineEnabled) {
             return true;
         } else {
@@ -175,7 +171,9 @@ class ApiClient
             )
         );
 
-        $response = $this->curl->post($this->config['baseUrl'].'user/unlimitedStreaming', $params);
+        $curl = new Curl();
+        $response = $curl->post($this->config['baseUrl'].'user/unlimitedStreaming', $params);
+
         if ($response->streaming) {
             return $response;
         } else {
@@ -193,7 +191,9 @@ class ApiClient
     public function getSubscription(array $params)
     {
         $url = $this->oauth->signRequest('GET', 'user/unlimitedStreaming', $params);
-        $response = $this->curl->get($url);
+        $curl = new Curl();
+        $response = $curl->get($url);
+
         if (!is_string($response) && $response->streaming) {
             return $response;
         } else {
@@ -223,16 +223,16 @@ class ApiClient
 
         $file = fopen($feedDir.'/'.$filename.'.gz', 'w+');
 
-        $this->curl->setOpt(CURLOPT_TIMEOUT, 600000);
-        $this->curl->setOpt(CURLOPT_FILE, $file);
-        $this->curl->setOpt(CURLOPT_FOLLOWLOCATION, true);
-        $response = $this->curl->get($requestUrl);
+        $curl = new Curl();
+        $curl->setOpt(CURLOPT_TIMEOUT, 600000);
+        $curl->setOpt(CURLOPT_FILE, $file);
+        $curl->setOpt(CURLOPT_FOLLOWLOCATION, true);
+        $response = $curl->get($requestUrl);
 
         fclose($file);
 
-        if ($this->curl->error) {
-var_dump(__METHOD__, $this->curl->errorMessage);
-            throw new Exception($this->curl->errorMessage, $this->curl->errorCode);
+        if ($curl->error) {
+            throw new Exception($curl->errorMessage, $curl->errorCode);
         }
 
         return true;
@@ -250,12 +250,14 @@ var_dump(__METHOD__, $this->curl->errorMessage);
     public function getFeedSize($type, $params, $full = false)
     {
         $requestUrl = $this->getFeedUrl($type, $params, $full = false);
-        $this->curl->setOpt(CURLOPT_NOBODY, true);
-        $this->curl->setOpt(CURLOPT_HEADER, true);
-        $this->curl->setOpt(CURLOPT_RETURNTRANSFER, true );
-        $this->curl->setOpt(CURLOPT_FOLLOWLOCATION, true );
-        $this->curl->setOpt(CURLOPT_NOBODY, true );
-        $response = $this->curl->head($requestUrl);
+
+        $curl = new Curl();
+        $curl->setOpt(CURLOPT_NOBODY, true);
+        $curl->setOpt(CURLOPT_HEADER, true);
+        $curl->setOpt(CURLOPT_RETURNTRANSFER, true );
+        $curl->setOpt(CURLOPT_FOLLOWLOCATION, true );
+        $curl->setOpt(CURLOPT_NOBODY, true );
+        $response = $curl->head($requestUrl);
 
         return $response;
     }
